@@ -2,7 +2,6 @@ package com.revature.controller;
 
 import java.util.List;
 
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -13,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.revature.dao.UserDAO;
 import com.revature.model.User;
-import com.revature.util.Email;
+import com.revature.util.EmailUtil;
 
 @Controller
 @RequestMapping("/users")
@@ -22,7 +21,7 @@ public class UserController {
 	@Autowired
 	private UserDAO userDAO;
 	@Autowired
-	private Email emailObj;
+	private EmailUtil emailObj;
 
 	@GetMapping("/list")
 	public String list(ModelMap modelMap) {
@@ -41,7 +40,7 @@ public class UserController {
 
 	@PostMapping("/save")
 	public String save(@RequestParam("name") String name, @RequestParam("email") String email,
-			@RequestParam("password") String password, ModelMap map) throws Exception{
+			@RequestParam("password") String password, ModelMap map) throws Exception {
 
 		User user = new User();
 		user.setName(name);
@@ -49,7 +48,12 @@ public class UserController {
 		user.setPassword(password);
 		System.out.println(user);
 		userDAO.save(user);
-		emailObj.send(email,"Registered successfully", "Welcome");
+
+		// Send Registration Notification Mail
+		String subject = "Your account has been created";
+		String body = "Welcome to Revature ! You can login to your account !";
+		emailObj.send(email, subject, body);
+
 		return "redirect:/users/list";
 	}
 
@@ -74,24 +78,24 @@ public class UserController {
 		userDAO.deActivateAccount(id);
 		return "redirect:/users/list";
 	}
-	
+
 	@PostMapping("/update")
-	public String update(@RequestParam("id")Integer id, @RequestParam("name") String name, @RequestParam("email")String email,
-			@RequestParam("password") String password ){
-		
+	public String update(@RequestParam("id") Integer id, @RequestParam("name") String name,
+			@RequestParam("email") String email, @RequestParam("password") String password) {
+
 		User user = userDAO.findOne(id);
 		user.setName(name);
 		user.setEmail(email);
 		user.setPassword(password);
-		
+
 		userDAO.update(user);
-		
+
 		return "redirect:/users/list";
 	}
-	
+
 	@GetMapping("/delete")
-	public String delete(@RequestParam("id")Integer id ){		
-		userDAO.delete(id);		
+	public String delete(@RequestParam("id") Integer id) {
+		userDAO.delete(id);
 		return "redirect:/users/list";
 	}
 }
